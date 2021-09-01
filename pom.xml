@@ -23,6 +23,18 @@
             <artifactId>keycloak-core</artifactId>
             <version>15.0.2</version>
         </dependency>
+        <dependency>
+            <groupId>com.twilio.sdk</groupId>
+            <artifactId>twilio</artifactId>
+            <version>8.18.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+            <version>3.4.2.Final</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <properties>

@@ -23,7 +23,7 @@ public class SMSAuthenticatorFactory implements AuthenticatorFactory {
 
     @Override
     public boolean isConfigurable() {
-        return false;
+        return true;
     }
 
     @Override
@@ -38,7 +38,7 @@ public class SMSAuthenticatorFactory implements AuthenticatorFactory {
 
     @Override
     public String getHelpText() {
-        return null;
+        return "Twilio 2FA";
     }
 
     @Override
@@ -48,7 +48,7 @@ public class SMSAuthenticatorFactory implements AuthenticatorFactory {
 
     @Override
     public Authenticator create(KeycloakSession keycloakSession) {
-        return null;
+        return new SMSAuthenticator();
     }
 
     @Override
