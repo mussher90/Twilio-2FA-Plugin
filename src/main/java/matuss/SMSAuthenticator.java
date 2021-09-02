@@ -1,15 +1,14 @@
 package matuss;
 
 import com.twilio.Twilio;
-import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.rest.verify.v2.Service;
 import com.twilio.rest.verify.v2.service.Verification;
 import com.twilio.rest.verify.v2.service.VerificationCheck;
 import org.keycloak.authentication.AuthenticationFlowContext;
+import org.keycloak.authentication.AuthenticationFlowError;
 import org.keycloak.authentication.Authenticator;
 import org.jboss.logging.Logger;
 import org.keycloak.forms.login.LoginFormsProvider;
-import org.keycloak.models.AuthenticatorConfigModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
@@ -21,7 +20,7 @@ public class SMSAuthenticator implements Authenticator {
 
     private static final String AUTH_TOKEN = "Authentication Token";
     private static final String ACCOUNT_SID = "Account SID";
-    private static final String SERVICE_SID = "Service SID";
+    private static final String SERVICE_NAME = "Service Name";
     private static final Logger LOG = Logger.getLogger(SMSAuthenticator.class);
     private static final String _2faTemplate = "TwilioSMS.ftl";
 
@@ -34,11 +33,12 @@ public class SMSAuthenticator implements Authenticator {
 
         String accountSid = config.get(ACCOUNT_SID);
         String authToken = config.get(AUTH_TOKEN);
+        String serviceName = config.get(SERVICE_NAME);
 
 
         Twilio.init(accountSid, authToken);
 
-        Service service = Service.creator("Keycloak").create();
+        Service service = Service.creator(serviceName ).create();
 
         String serviceSid = service.getSid();
 
@@ -74,6 +74,10 @@ public class SMSAuthenticator implements Authenticator {
         }
         else{
             LOG.info(String.format("Code is not valid: %s", checkCode.getValid()));
+            context.failureChallenge(AuthenticationFlowError.INTERNAL_ERROR, context.form()
+                    .setError("smsAuthCodeInvalid", null)
+                    .createForm(_2faTemplate));
+            return;
         }
     }
 
