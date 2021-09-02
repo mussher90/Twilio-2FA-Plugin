@@ -6,8 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="2FAAuthenticator" />
+        <module name="2factorauthentication" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="2FAAuthenticator" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>
