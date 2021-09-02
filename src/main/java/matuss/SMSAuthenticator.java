@@ -2,10 +2,14 @@ package matuss;
 
 import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
+import com.twilio.rest.verify.v2.Service;
+import com.twilio.rest.verify.v2.service.Verification;
+import com.twilio.rest.verify.v2.service.VerificationCheck;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.Authenticator;
 import org.jboss.logging.Logger;
 import org.keycloak.forms.login.LoginFormsProvider;
+import org.keycloak.models.AuthenticatorConfigModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
@@ -30,16 +34,19 @@ public class SMSAuthenticator implements Authenticator {
 
         String accountSid = config.get(ACCOUNT_SID);
         String authToken = config.get(AUTH_TOKEN);
-        String serviceSid = config.get(SERVICE_SID);
+
 
         Twilio.init(accountSid, authToken);
-        Message message = Message.creator(
-                        new com.twilio.type.PhoneNumber(phoneNumber),
-                        serviceSid,
-                        "Twilio 2FA authenticator working as desired - just need to add correct authentication logic.")
+
+        Service service = Service.creator("Keycloak").create();
+
+        String serviceSid = service.getSid();
+
+        Verification verification = Verification.creator(serviceSid, phoneNumber, "sms")
                 .create();
 
-        LOG.info(message.getSid());
+        context.getAuthenticationSession().setAuthNote("serviceSid", serviceSid);
+        LOG.info(verification.getStatus() + "\n" + serviceSid);
 
         context.challenge(form.createForm(_2faTemplate));
 
@@ -47,12 +54,27 @@ public class SMSAuthenticator implements Authenticator {
 
     @Override
     public void action(AuthenticationFlowContext context) {
+
         MultivaluedMap<String, String> formData = context.getHttpRequest().getDecodedFormParameters();
 
-        LOG.info(formData.getFirst("code") + "\n");
+        String code = formData.getFirst("code");
+        String phoneNumber = context.getUser().getFirstAttribute("phoneNumber");
+        String serviceSid = context.getAuthenticationSession().getAuthNote("serviceSid");
 
-        LOG.info("It seems to have worked alright...");
-        context.success();
+        VerificationCheck checkCode = VerificationCheck.creator(serviceSid, code)
+                .setTo(phoneNumber)
+                .create();
+
+        LOG.info(code + "\n");
+
+        LOG.info("It seems to have worked alright...\n");
+
+        if(checkCode.getValid()){
+            context.success();
+        }
+        else{
+            LOG.info(String.format("Code is not valid: %s", checkCode.getValid()));
+        }
     }
 
     @Override
